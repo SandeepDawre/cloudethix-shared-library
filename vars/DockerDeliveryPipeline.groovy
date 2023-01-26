@@ -1,15 +1,35 @@
 pipeline {
-    agent any
-    stages {
-        stage('Example') {
-            steps {
-                getPlatformName()
+    agent any 
+    environment {
+        registryURI = "https://registry.hub.docker.com/"
+        registry = "teamcloudethix/cloudethix-sample-nginx"
+        registryCredential = '02_docker_hub_creds'
+        }
+stages {
+        stage('Building image from project dir from shared Lib') {
+            environment {
+                registry_endpoint = "${env.registryURI}" + "${env.registry}"
+                tag_commit_id     = "${env.registry}" + ":$GIT_COMMIT"
+            }
+            steps{
+                script {
+                def app = docker.build(tag_commit_id)
+                docker.withRegistry( registry_endpoint, registryCredential ) {
+                app.push()
+                }
             }
         }
+        }
+        stage('Remove Unused docker image from shared Lib') {
+            steps{
+                sh "docker rmi $registry:$GIT_COMMIT"
+                }
+        }
     }
-}
-
-def getPlatformName() {
-  
-  return config.platform
+    post { 
+        always { 
+            echo 'Deleting Workspace from shared Lib'
+            deleteDir() /* clean up our workspace */
+        }
+    }
 }

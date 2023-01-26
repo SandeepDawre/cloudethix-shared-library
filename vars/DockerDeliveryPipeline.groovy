@@ -9,6 +9,7 @@ body()
         registryURI = "https://registry.hub.docker.com/"
         registry = "teamcloudethix/cloudethix-sample-nginx"
         registryCredential = '02_docker_hub_creds'
+        platform = getPlatformName()
         }
 stages {
         stage('Building image from project dir from shared Lib') {
@@ -18,6 +19,7 @@ stages {
             }
             steps{
                 script {
+                sh 'echo "${env.platform}"'
                 def app = docker.build(tag_commit_id)
                 docker.withRegistry( registry_endpoint, registryCredential ) {
                 app.push()
@@ -38,4 +40,7 @@ stages {
         }
     }
 }
+}
+def getPlatformName() {
+  return config.platform
 }

@@ -40,7 +40,8 @@ stages {
         }
     }
 }
-}
 def getPlatformName() {
   return config.platform
 }
+}
+

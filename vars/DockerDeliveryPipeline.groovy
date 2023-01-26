@@ -1,4 +1,9 @@
-pipeline {
+def call(body) {
+def config = [:]
+body.resolveStrategy = Closure.DELEGATE_FIRST
+body.delegate = config
+body()
+    pipeline {
     agent any 
     environment {
         registryURI = "https://registry.hub.docker.com/"
@@ -32,4 +37,5 @@ stages {
             deleteDir() /* clean up our workspace */
         }
     }
+}
 }

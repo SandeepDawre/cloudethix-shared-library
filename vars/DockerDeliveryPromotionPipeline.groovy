@@ -6,7 +6,7 @@ def call(body) {
     pipeline {
         agent any
         environment {
-            registryURI         = 'https://registry.hub.docker.com/'
+            registryURI         = 'registry.hub.docker.com/'
 
             dev_registry        = 'teamcloudethix/cloudethix-sample-nginx-dev'
             qa_registry         = 'teamcloudethix/cloudethix-sample-nginx-qa'
@@ -32,7 +32,7 @@ def call(body) {
                     }
                 }
                 environment {
-                    dev_registry_endpoint = "${env.registryURI}" + "${env.dev_registry}"
+                    dev_registry_endpoint = 'https://' + "${env.registryURI}" + "${env.dev_registry}"
                     dev_image             = "${env.dev_registry}" + ":$GIT_COMMIT"
                 }
                 steps {
@@ -57,10 +57,10 @@ def call(body) {
                     }
                 }
                     environment {
-                        dev_registry_endpoint = "${env.registryURI}" + "${env.dev_registry}"
-                        qa_registry_endpoint  = "${env.registryURI}" + "${env.qa_registry}"
-                        dev_image             = "${env.dev_registry}" + ':' + "${env.COMMITID}"
-                        qa_image              = "${env.qa_registry}" + ':' + "${env.COMMITID}"
+                        dev_registry_endpoint = 'https://' + "${env.registryURI}" + "${env.dev_registry}"
+                        qa_registry_endpoint  = 'https://' + "${env.registryURI}" + "${env.qa_registry}"
+                        dev_image             = "${registryURI}" + "${env.dev_registry}" + ':' + "${env.COMMITID}"
+                        qa_image              = "${registryURI}" + "${env.qa_registry}" + ':' + "${env.COMMITID}"
                     }
                     steps {
                         script {
@@ -97,4 +97,3 @@ def call(body) {
         }
     }
 }
-

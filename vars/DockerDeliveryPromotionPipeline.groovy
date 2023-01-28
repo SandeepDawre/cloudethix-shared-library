@@ -61,8 +61,8 @@ def call(body) {
                     }
                     steps {
                         script {
-                            docker.withRegistry( dev_registry_endpoint, dev_dh_creds ) {
-                                docker.image("${env.dev_image}").pull()
+                            docker.withRegistry(dev_registry_endpoint, dev_dh_creds) {
+                                docker.image(dev_image).pull()
                             }
 
                             sh 'echo Image pulled'
@@ -70,10 +70,10 @@ def call(body) {
                             sh "docker tag ${env.dev_image} ${env.qa_image}"
 
                             docker.withRegistry(qa_registry_endpoint , qa_dh_creds) {
-                                docker.image("${env.qa_image}").push()
+                                docker.image(env.qa_image).push()
                             }
-                            
-                            sh "echo Image pushed"
+
+                            sh 'echo Image pushed'
                         }
                     }
                     post {

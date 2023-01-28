@@ -65,11 +65,15 @@ def call(body) {
                                 docker.image("${env.dev_image}").pull()
                             }
 
+                            sh 'echo Image pulled'
+
                             sh "docker tag ${env.dev_image} ${env.qa_image}"
 
                             docker.withRegistry(qa_registry_endpoint , qa_dh_creds) {
                                 docker.image("${env.qa_image}").push()
                             }
+                            
+                            sh "echo Image pushed"
                         }
                     }
                     post {
@@ -79,15 +83,15 @@ def call(body) {
                             sh "docker rmi ${env.qa_image}"
                         }
                     }
-                }
             }
+        }
         post {
             always {
                 echo 'Deleting Workspace from shared Lib'
                 emailext(body: '${DEFAULT_CONTENT}', subject: '${DEFAULT_SUBJECT}', to: '$DEFAULT_RECIPIENTS')
                 deleteDir() /* clean up our workspace */
             }
-        }            
         }
     }
+}
 

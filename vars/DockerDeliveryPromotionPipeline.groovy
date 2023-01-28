@@ -17,9 +17,12 @@ def call(body) {
             qa_dh_creds         = 'dh_cred_qa'
             stage_dh_creds      = 'dh_cred_stage'
             prod_dh_creds       = 'dh_cred_prod'
+
+            COMMITID           = "${params.commit_id}"
         }
         parameters {
             choice(name: 'account', choices: ['dev', 'qa', 'stage', 'prod'], description: 'Select the environment.')
+            string(name: 'commit_id', defaultValue: 'latest', description: 'provide commit id.')
         }
         stages {
             stage('Building the Docker Image in Dev') {
@@ -56,8 +59,8 @@ def call(body) {
                     environment {
                         dev_registry_endpoint = "${env.registryURI}" + "${env.dev_registry}"
                         qa_registry_endpoint  = "${env.registryURI}" + "${env.qa_registry}"
-                        dev_image             = "${env.dev_registry}" + ":$GIT_COMMIT"
-                        qa_image              = "${env.qa_registry}" + ":$GIT_COMMIT"
+                        dev_image             = "${env.dev_registry}" + ':' + "${env.COMMITID}"
+                        qa_image              = "${env.qa_registry}" + ':' + "${env.COMMITID}"
                     }
                     steps {
                         script {

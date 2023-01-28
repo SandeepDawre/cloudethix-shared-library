@@ -52,6 +52,7 @@ def call(body) {
                     expression {
                         params.account == 'qa'
                     }
+                }
                     environment {
                         dev_registry_endpoint = "${env.registryURI}" + "${env.dev_registry}"
                         qa_registry_endpoint  = "${env.registryURI}" + "${env.qa_registry}"
@@ -75,7 +76,7 @@ def call(body) {
                         always {
                             sh 'echo Cleaning docker Images from Jenkins.'
                             sh "docker rmi ${env.dev_image}"
-                            ssh "docker rmi ${env.qa_image}"
+                            sh "docker rmi ${env.qa_image}"
                         }
                     }
                 }

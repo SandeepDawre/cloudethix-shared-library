@@ -6,12 +6,17 @@ def call(body) {
     pipeline {
         agent any
         environment {
-            registryURI = 'https://registry.hub.docker.com/'
-            dev_registry = 'teamcloudethix/cloudethix-sample-nginx-dev'
-            qa_registry = 'teamcloudethix/cloudethix-sample-nginx-qa'
-            stage_registry = 'teamcloudethix/cloudethix-sample-nginx-stage'
-            prod_registry = 'teamcloudethix/cloudethix-sample-nginx-prod'
-            registryCredential = '02_docker_hub_creds'
+            registryURI         = 'https://registry.hub.docker.com/'
+
+            dev_registry        = 'teamcloudethix/cloudethix-sample-nginx-dev'
+            qa_registry         = 'teamcloudethix/cloudethix-sample-nginx-qa'
+            stage_registry      = 'teamcloudethix/cloudethix-sample-nginx-stage'
+            prod_registry       = 'teamcloudethix/cloudethix-sample-nginx-prod'
+
+            dev_dh_creds        = 'dh_cred_dev'
+            qa_dh_creds         = 'dh_cred_qa'
+            stage_dh_creds      = 'dh_cred_stage'
+            prod_dh_creds       = 'dh_cred_prod'
         }
         parameters {
             choice(name: 'account', choices: ['dev', 'qa', 'stage', 'prod'], description: 'Select the environment.')
@@ -30,7 +35,7 @@ def call(body) {
                 steps {
                     script {
                         def app = docker.build(dev_image)
-                        docker.withRegistry( dev_registry_endpoint, registryCredential ) {
+                        docker.withRegistry( dev_registry_endpoint, dev_dh_creds ) {
                             app.push()
                         }
                     }
@@ -55,13 +60,13 @@ def call(body) {
                     }
                     steps {
                         script {
-                            docker.withRegistry( dev_registry_endpoint, registryCredential ) {
+                            docker.withRegistry( dev_registry_endpoint, dev_dh_creds ) {
                                 docker.image("${env.dev_image}").pull()
                             }
 
                             sh "docker tag ${env.dev_image} ${env.qa_image}"
 
-                            docker.withRegistry(qa_registry_endpoint , registryCredential) {
+                            docker.withRegistry(qa_registry_endpoint , qa_dh_creds) {
                                 docker.image("${env.qa_image}").push()
                             }
                         }
@@ -79,6 +84,7 @@ def call(body) {
         post {
             always {
                 echo 'Deleting Workspace from shared Lib'
+                emailext(body: '${DEFAULT_CONTENT}', subject: '${DEFAULT_SUBJECT}', to: '$DEFAULT_RECIPIENTS')
                 deleteDir() /* clean up our workspace */
             }
         }

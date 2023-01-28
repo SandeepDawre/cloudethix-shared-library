@@ -81,13 +81,13 @@ def call(body) {
                     }
                 }
             }
-        }
         post {
             always {
                 echo 'Deleting Workspace from shared Lib'
                 emailext(body: '${DEFAULT_CONTENT}', subject: '${DEFAULT_SUBJECT}', to: '$DEFAULT_RECIPIENTS')
                 deleteDir() /* clean up our workspace */
             }
+        }            
         }
     }
 

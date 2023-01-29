@@ -174,7 +174,7 @@ def call(body) {
                     steps {
                         script {
                         echo 'Deploying on Dev K8S Cluster. '
-                        withKubeConfig(credentialsId: "${env.account_name}", restrictKubeConfigAccess: true) {
+                        withKubeConfig(credentialsId: "${env.kube_config}", restrictKubeConfigAccess: true) {
                                 sh 'sed -i -e "s/{{ACCOUNT}}/${env.account_name}/g" -e "s/{{COMMITID}}/${$GIT_COMMIT}/g" kube/deployment.yaml'
                                 sh 'echo deployment.yaml file after replace with sed'
                                 sh 'cat kube/deployment.yaml'

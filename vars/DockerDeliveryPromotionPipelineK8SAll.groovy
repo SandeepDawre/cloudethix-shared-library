@@ -172,17 +172,8 @@ def call(body) {
                         account_name = "${params.account}"
                     }
                     steps {
-                        script {
                         echo 'Deploying on Dev K8S Cluster. '
-                        //deployOnK8s(env.kube_config, env.account_name, env.GIT_COMMIT)
-                        withKubeConfig(credentialsId: "${env.kube_config}", restrictKubeConfigAccess: true) {
-                                sh "sed -i -e 's/{{ACCOUNT}}/${env.account_name}/g' -e 's/{{COMMITID}}/${GIT_COMMIT}/g' kube/deployment.yaml"
-                                sh 'echo deployment.yaml file after replace with sed'
-                                sh 'cat kube/deployment.yaml'
-                                sh 'kubectl apply -f kube/deployment.yaml'
-                                sh 'kubectl apply -f kube/service.yaml'
-                        }
-                        }
+                        deployOnK8s(env.kube_config, env.account_name, env.GIT_COMMIT)
                     }
             }
             stage('Deploy to QA K8S cluster ') {

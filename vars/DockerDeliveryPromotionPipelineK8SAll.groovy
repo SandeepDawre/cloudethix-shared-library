@@ -63,21 +63,7 @@ def call(body) {
                         qa_image              = "${env.registryURI}" + "${env.qa_registry}" + ':' + "${env.COMMITID}"
                     }
                     steps {
-                        script {
-                            docker.withRegistry(dev_registry_endpoint, dev_dh_creds) {
-                                docker.image(dev_image).pull()
-                            }
-
-                            sh 'echo Image pulled'
-
-                            sh "docker tag ${env.dev_image} ${env.qa_image}"
-
-                            docker.withRegistry(qa_registry_endpoint , qa_dh_creds) {
-                                docker.image(env.qa_image).push()
-                            }
-
-                            sh 'echo Image pushed'
-                        }
+                        dockerPullTagPush(env.dev_registry_endpoint, env.dev_dh_creds, env.dev_image, env.qa_registry_endpoint, env.qa_dh_creds, env.qa_image)
                     }
                     post {
                         always {
@@ -100,21 +86,7 @@ def call(body) {
                         stage_image                 = "${env.registryURI}" + "${env.stage_registry}" + ':' + "${env.COMMITID}"
                     }
                     steps {
-                        script {
-                            docker.withRegistry(qa_registry_endpoint, qa_dh_creds) {
-                                docker.image(qa_image).pull()
-                            }
-
-                            sh 'echo Image pulled'
-
-                            sh "docker tag ${env.qa_image} ${env.stage_image}"
-
-                            docker.withRegistry(stage_registry_endpoint , stage_dh_creds) {
-                                docker.image(env.stage_image).push()
-                            }
-
-                            sh 'echo Image pushed'
-                        }
+                        dockerPullTagPush(env.qa_registry_endpoint, env.qa_dh_creds, env.qa_image, env.stage_registry_endpoint, env.stage_dh_creds, env.stage_image)
                     }
                     post {
                         always {
@@ -137,21 +109,7 @@ def call(body) {
                         prod_image              = "${env.registryURI}" + "${env.prod_registry}" + ':' + "${env.COMMITID}"
                     }
                     steps {
-                        script {
-                            docker.withRegistry(stage_registry_endpoint, stage_dh_creds) {
-                                docker.image(stage_image).pull()
-                            }
-
-                            sh 'echo Image pulled'
-
-                            sh "docker tag ${env.stage_image} ${env.prod_image}"
-
-                            docker.withRegistry(prod_registry_endpoint , prod_dh_creds) {
-                                docker.image(env.prod_image).push()
-                            }
-
-                            sh 'echo Image pushed'
-                        }
+                        dockerPullTagPush(env.stage_registry_endpoint, env.stage_dh_creds, env.stage_image, env.prod_registry_endpoint, env.prod_dh_creds, env.prod_image)
                     }
                     post {
                         always {
@@ -234,10 +192,23 @@ def call(body) {
 
 def deployOnK8s(String KUBE_CONFIG, String ACCOUNT, String COMMIT) {
     withKubeConfig(credentialsId: "${KUBE_CONFIG}", restrictKubeConfigAccess: true) {
-                sh "sed -i -e 's/{{ACCOUNT}}/${ACCOUNT}/g' -e 's/{{COMMITID}}/${COMMIT}/g' kube/deployment.yaml"
-                sh 'echo deployment.yaml file after replace with sed'
-                sh 'cat kube/deployment.yaml'
-                sh 'kubectl apply -f kube/deployment.yaml'
-                sh 'kubectl apply -f kube/service.yaml'
+        sh "sed -i -e 's/{{ACCOUNT}}/${ACCOUNT}/g' -e 's/{{COMMITID}}/${COMMIT}/g' kube/deployment.yaml"
+        sh 'echo deployment.yaml file after replace with sed'
+        sh 'cat kube/deployment.yaml'
+        sh 'kubectl apply -f kube/deployment.yaml'
+        sh 'kubectl apply -f kube/service.yaml'
     }
+}
+
+def dockerPullTagPush(String SRC_REGISTRY_ENDPOINT, String SRC_DH_CREDS, String SRC_IMAGE, String DST_REGISTRY_ENDPOINT, String DST_DH_CREDS, String DST_IMAGE) {
+    docker.withRegistry(SRC_REGISTRY_ENDPOINT, SRC_DH_CREDS) {
+        docker.image(SRC_IMAGE).pull()
+    }
+    sh 'echo Image pulled. Now Tagging !!'
+    sh "docker tag ${SRC_IMAGE} ${DST_IMAGE}"
+
+    docker.withRegistry(DST_REGISTRY_ENDPOINT , DST_DH_CREDS) {
+        docker.image(DST_IMAGE).push()
+    }
+    sh 'echo Image pushed'
 }
